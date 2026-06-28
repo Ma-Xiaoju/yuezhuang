@@ -914,6 +914,9 @@ async function confirmOrder(id) {
   const idx = orders.findIndex(o => o.id === id);
   if (idx === -1) return;
   orders[idx].status = 'completed';
+  if (!orders[idx].completedAmount && orders[idx].amount) {
+    orders[idx].completedAmount = orders[idx].amount;
+  }
   render();
   await syncSave();
   showToast('已确认 ✅');
