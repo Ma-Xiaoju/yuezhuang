@@ -696,7 +696,7 @@ function render() {
       return `<div class="order-card">
           <div class="row">
             <div class="client-info">
-              <div class="name">${esc(o.name)}</div>
+              <div class="name">${o.name ? esc(o.name) : "📝 未命名客人"}</div>
               <div class="contact">
                 ${o.phone ? `<span><span class="material-icons mat-icon">phone</span>${esc(o.phone)}</span>` : ''}
                 ${o.wechat ? `<span><span class="material-icons mat-icon">chat</span>${esc(o.wechat)}</span>` : ''}
@@ -754,7 +754,6 @@ async function addOrUpdateOrder() {
   const status = document.getElementById('inpStatus').value;
   const notes = document.getElementById('inpNotes').value.trim();
 
-  if (!name) { showToast('请填写客人姓名'); return; }
   if (!date) { showToast('请选择约妆日期'); return; }
 
   if (editingId) {
