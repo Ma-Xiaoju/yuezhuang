@@ -459,19 +459,9 @@ body {
       <label>时间</label>
       <input type="time" id="inpTime">
     </div>
-    </div>
     <div class="form-group">
       <label>服务项目</label>
-      <select id="inpService">
-        <option value="日常妆">日常妆</option>
-        <option value="新娘妆">新娘妆</option>
-        <option value="晚宴妆">晚宴妆</option>
-        <option value="写真妆">写真妆</option>
-        <option value="古风妆">古风妆</option>
-        <option value="舞台妆">舞台妆</option>
-        <option value="亲子妆">亲子妆</option>
-        <option value="其他">其他</option>
-      </select>
+      <input type="text" id="inpService" placeholder="输入服务项目，如日常妆、新娘妆...">
     </div>
     <div class="form-group">
       <label>状态</label>
@@ -733,7 +723,7 @@ function openModal(order) {
   document.getElementById('inpWechat').value = order ? (order.wechat || '') : '';
   document.getElementById("inpDate").value = order ? (order.date || "") : todayStr();
   document.getElementById("inpTime").value = order ? (order.time || "") : "";
-  document.getElementById('inpService').value = order ? (order.service || '日常妆') : '日常妆';
+  document.getElementById('inpService').value = order ? (order.service || '') : '';
   document.getElementById('inpStatus').value = order ? (order.status || 'pending') : 'pending';
   document.getElementById('inpNotes').value = order ? (order.notes || '') : '';
   document.getElementById('modal').classList.add('open');
