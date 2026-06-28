@@ -667,7 +667,7 @@ function render() {
             ${o.phone ? `<a href="tel:${esc(o.phone)}"><span class="material-icons mat-icon">call</span>打电话</a>` : ''}
             ${o.wechat ? `<a href="weixin://"><span class="material-icons mat-icon">chat</span>微信</a>` : ''}
           </div>
-          ${o.status === 'pending' ? `<button class="btn-confirm" onclick="confirmOrder('${o.id}')">确认预约 ✓</button>` : ''}
+          ${o.status === 'pending' ? `<button class="btn-confirm" onclick="confirmOrder('${o.id}')">确认完成 ✓</button>` : ''}
           <div class="actions">
             <button class="btn-edit" onclick="editOrder('${o.id}')"><span class="material-icons" style="font-size:14px">edit</span> 编辑</button>
             <button class="btn-delete" onclick="deleteOrder('${o.id}')"><span class="material-icons" style="font-size:14px">delete</span> 删除</button>
@@ -733,7 +733,7 @@ function editOrder(id) {
 async function confirmOrder(id) {
   const idx = orders.findIndex(o => o.id === id);
   if (idx === -1) return;
-  orders[idx].status = 'confirmed';
+  orders[idx].status = 'completed';
   render();
   await syncSave();
   showToast('已确认 ✅');
