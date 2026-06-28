@@ -838,19 +838,14 @@ function switchView(mode) {
   viewMode = mode;
   document.getElementById('viewOrders').className = mode === 'orders' ? 'active' : '';
   document.getElementById('viewIncome').className = mode === 'income' ? 'active' : '';
-  // Hide/show stats labels based on mode
-  document.querySelectorAll('.stat-card .label').forEach((el, i) => {
-    if (mode === 'income') {
-      if (i === 0) el.textContent = '已完成';
-      else if (i === 1) el.textContent = '总收入';
-      else if (i === 2) el.textContent = '';
-      else if (i === 3) el.textContent = '';
-    } else {
-      if (i === 0) el.textContent = '全部';
-      else if (i === 1) el.textContent = '待确认';
-      else if (i === 2) el.textContent = '已确认';
-      else if (i === 3) el.textContent = '已完成';
-    }
+  // Update stat cards based on mode
+  document.querySelectorAll('.stat-card').forEach((el, i) => {
+    const labels = ['全部','待确认','已确认','已完成'];
+    const incomeLabels = ['已完成','总收入','',''];
+    const isVisible = mode === 'orders' || i < 2;
+    el.style.display = isVisible ? '' : 'none';
+    const labelEl = el.querySelector('.label');
+    if (labelEl) labelEl.textContent = mode === 'income' ? incomeLabels[i] : labels[i];
   });
   const tabsEl = document.getElementById('tabs');
   const dateFilterEl = document.querySelector('.date-filter');
