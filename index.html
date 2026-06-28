@@ -816,7 +816,7 @@ function esc(s) {
 }
 
 function renderIncome() {
-  const completed = orders.filter(o => o.status === 'completed' && o.completedAmount && parseFloat(o.completedAmount) > 0)
+  const completed = orders.filter(o => o.status === 'completed' && o.completedAmount && parseFloat(o.completedAmount) > 0 && (dateFilter === '' || o.date === dateFilter))
     .sort((a, b) => (b.date || '') < (a.date || '') ? -1 : (b.date || '') > (a.date || '') ? 1 : 0);
   const total = completed.reduce((sum, o) => sum + parseFloat(o.completedAmount || 0), 0);
 
@@ -828,7 +828,7 @@ function renderIncome() {
 
   const list = document.getElementById('orderList');
   if (completed.length === 0) {
-    list.innerHTML = '<div class="empty-state"><span class="material-icons">payments</span><p>暂无完成订单的收入</p></div>';
+    list.innerHTML = '<div class="empty-state"><span class="material-icons">payments</span><p>' + (dateFilter ? '该日期暂无完成收入' : '暂无完成订单的收入') + '</p></div>';
     return;
   }
 
@@ -861,8 +861,10 @@ function switchView(mode) {
   });
   const tabsEl = document.getElementById('tabs');
   const dateFilterEl = document.querySelector('.date-filter');
+  const dateLabel = document.querySelector('.date-filter-label');
   if (tabsEl) tabsEl.style.display = mode === 'orders' ? 'flex' : 'none';
-  if (dateFilterEl) dateFilterEl.style.display = mode === 'orders' ? 'flex' : 'none';
+  if (dateFilterEl) dateFilterEl.style.display = 'flex';
+  if (dateLabel) dateLabel.textContent = mode === 'income' ? '💰' : '📅';
   render();
 }
 
