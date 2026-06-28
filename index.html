@@ -498,6 +498,7 @@ const GH_PATH = 'data/orders.json';
 const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
 const LS_KEY = 'orders_makeup_sync';
 const LS_CACHE_KEY = 'orders_makeup_cache';
+const CACHE_VERSION = 2;
 
 // ====== Data ======
 let orders = [];
@@ -521,6 +522,7 @@ async function syncLoad() {
       if (Array.isArray(parsed)) {
         orders = parsed;
         localStorage.setItem(LS_CACHE_KEY, decoded);
+        localStorage.setItem(LS_CACHE_KEY + '_ver', String(CACHE_VERSION));
         setSyncStatus('synced', '已同步 ✓');
         return;
       }
@@ -535,7 +537,8 @@ async function syncLoad() {
   } catch (e) {
     // Fallback to cache
     const cached = localStorage.getItem(LS_CACHE_KEY);
-    if (cached) {
+    const ver = parseInt(localStorage.getItem(LS_CACHE_KEY + '_ver') || '0', 10);
+    if (cached && ver >= CACHE_VERSION) {
       try {
         orders = JSON.parse(cached);
         setSyncStatus('offline', '离线模式（显示缓存）');
@@ -584,6 +587,7 @@ async function syncSave() {
       currentSha = result.content.sha;
       // Update cache
       localStorage.setItem(LS_CACHE_KEY, JSON.stringify(orders, null, 2));
+      localStorage.setItem(LS_CACHE_KEY + '_ver', String(CACHE_VERSION));
       setSyncStatus('synced', '已同步 ✓');
       return true;
     }
