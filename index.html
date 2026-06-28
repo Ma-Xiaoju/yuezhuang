@@ -516,7 +516,7 @@ async function syncLoad() {
     if (resp.status === 200) {
       const data = await resp.json();
       currentSha = data.sha;
-      const decoded = atob(data.content.replace(/\n/g, ''));
+      const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
       const parsed = JSON.parse(decoded);
       if (Array.isArray(parsed)) {
         orders = parsed;
