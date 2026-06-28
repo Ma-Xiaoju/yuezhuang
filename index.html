@@ -462,37 +462,27 @@ body {
 /* View toggle */
 .view-toggle {
   display: flex;
-  gap: 0;
-  padding: 0 16px;
-  margin-top: -16px;
-  position: relative;
-  z-index: 11;
+  gap: 8px;
   justify-content: center;
+  margin-top: 12px;
+  padding-bottom: 4px;
 }
 .view-toggle button {
-  flex: 1;
-  max-width: 160px;
-  padding: 8px 0;
-  border: 2px solid var(--pink);
+  padding: 6px 24px;
+  border-radius: 16px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all .2s;
-  background: var(--card);
-  color: var(--pink-dark);
-}
-.view-toggle button:first-child {
-  border-radius: 10px 0 0 10px;
-  border-right: none;
-}
-.view-toggle button:last-child {
-  border-radius: 0 10px 10px 0;
-  border-left: none;
+  background: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.3);
+  white-space: nowrap;
 }
 .view-toggle button.active {
-  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
-  color: #fff;
-  border-color: var(--pink-dark);
+  background: #fff;
+  color: var(--pink-dark);
+  border-color: #fff;
 }
 
 /* Income view */
@@ -545,12 +535,11 @@ body {
   <div class="sync-bar" id="syncBar">
     <span class="sync-dot offline" id="syncDot"></span>
     <span id="syncText">加载中...</span>
+    <div class="view-toggle">
+    <button class="active" id="viewOrders" onclick="switchView('orders')">📋 订单</button>
+    <button id="viewIncome" onclick="switchView('income')">💰 收入</button>
   </div>
 </div>
-
-<div class="view-toggle">
-  <button class="active" id="viewOrders" onclick="switchView('orders')">📋 订单</button>
-  <button id="viewIncome" onclick="switchView('income')">💰 收入</button>
 </div>
 
 <div class="stats" id="stats">
