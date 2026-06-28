@@ -531,6 +531,10 @@ body {
       <input type="number" id="inpAmount" placeholder="0" min="0" step="1">
     </div>
     <div class="form-group">
+      <label>完成金额（元）</label>
+      <input type="number" id="inpCompletedAmount" placeholder="实际收款" min="0" step="1">
+    </div>
+    <div class="form-group">
       <label>状态</label>
       <select id="inpStatus">
         <option value="pending">待确认</option>
@@ -708,6 +712,7 @@ function render() {
             <span><span class="material-icons mat-icon">event</span>${esc(dateDisplay)}${weekday ? " 周" + weekday : ""}</span>
             <span><span class="material-icons mat-icon">spa</span>${esc(svc)}</span>
             ${o.amount ? `<span><span class="material-icons mat-icon">payments</span>¥${esc(o.amount)}</span>` : ''}
+            ${o.completedAmount ? `<span style="color:var(--green)"><span class="material-icons mat-icon">check_circle</span>实收¥${esc(o.completedAmount)}</span>` : ''}
           </div>
           ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ''}
           <div class="quick-contact">
@@ -751,6 +756,7 @@ async function addOrUpdateOrder() {
   const date = document.getElementById('inpDate').value;
   const service = document.getElementById('inpService').value;
   const amount = document.getElementById('inpAmount').value;
+  const completedAmount = document.getElementById('inpCompletedAmount').value;
   const status = document.getElementById('inpStatus').value;
   const notes = document.getElementById('inpNotes').value.trim();
 
@@ -759,10 +765,10 @@ async function addOrUpdateOrder() {
   if (editingId) {
     const idx = orders.findIndex(o => o.id === editingId);
     if (idx !== -1) {
-      orders[idx] = { ...orders[idx], name, phone, time, wechat, date, service, amount, status, notes };
+      orders[idx] = { ...orders[idx], name, phone, time, wechat, date, service, amount, completedAmount, status, notes };
     }
   } else {
-    orders.unshift({ id: genId(), name, phone, time, wechat, date, service, amount, status, notes, createdAt: Date.now() });
+    orders.unshift({ id: genId(), name, phone, time, wechat, date, service, amount, completedAmount, status, notes, createdAt: Date.now() });
   }
 
   closeModal();
@@ -808,6 +814,7 @@ function openModal(order) {
   document.getElementById("inpTime").value = order ? (order.time || "") : "";
   document.getElementById('inpService').value = order ? (order.service || '') : '';
   document.getElementById('inpAmount').value = order ? (order.amount || '') : '';
+  document.getElementById('inpCompletedAmount').value = order ? (order.completedAmount || '') : '';
   document.getElementById('inpStatus').value = order ? (order.status || 'pending') : 'pending';
   document.getElementById('inpNotes').value = order ? (order.notes || '') : '';
   document.getElementById('modal').classList.add('open');
