@@ -601,10 +601,6 @@ body {
       <input type="number" id="inpAmount" placeholder="0" min="0" step="1">
     </div>
     <div class="form-group">
-      <label>完成金额（元）</label>
-      <input type="number" id="inpCompletedAmount" placeholder="实际收款" min="0" step="1">
-    </div>
-    <div class="form-group">
       <label>状态</label>
       <select id="inpStatus">
         <option value="pending">待确认</option>
@@ -787,7 +783,6 @@ function render() {
             <span><span class="material-icons mat-icon">event</span>${esc(dateDisplay)}${weekday ? " 周" + weekday : ""}</span>
             <span><span class="material-icons mat-icon">spa</span>${esc(svc)}</span>
             ${o.amount ? `<span><span class="material-icons mat-icon">payments</span>¥${esc(o.amount)}</span>` : ''}
-            ${o.completedAmount ? `<span style="color:var(--green)"><span class="material-icons mat-icon">check_circle</span>实收¥${esc(o.completedAmount)}</span>` : ''}
           </div>
           ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ''}
           <div class="quick-contact">
@@ -816,9 +811,9 @@ function esc(s) {
 }
 
 function renderIncome() {
-  const completed = orders.filter(o => o.status === 'completed' && o.completedAmount && parseFloat(o.completedAmount) > 0 && (dateFilter === '' || o.date === dateFilter))
+  const completed = orders.filter(o => o.status === 'completed' && o.amount && parseFloat(o.amount) > 0 && (dateFilter === '' || o.date === dateFilter))
     .sort((a, b) => (b.date || '') < (a.date || '') ? -1 : (b.date || '') > (a.date || '') ? 1 : 0);
-  const total = completed.reduce((sum, o) => sum + parseFloat(o.completedAmount || 0), 0);
+  const total = completed.reduce((sum, o) => sum + parseFloat(o.amount || 0), 0);
 
   // Update stats
   document.getElementById('stat-all').textContent = completed.length;
@@ -837,7 +832,7 @@ function renderIncome() {
       '<div class="ii-date">' + esc(o.date || '') + (o.time ? ' ' + esc(o.time) : '') + '</div>' +
       '<div class="ii-info"><div class="ii-name">' + (o.name ? esc(o.name) : '未命名') + '</div>' +
       '<div class="ii-service">' + (o.service ? esc(o.service) : '') + '</div></div>' +
-      '<div class="ii-amount">¥' + esc(o.completedAmount) + '</div>' +
+      '<div class="ii-amount">¥' + esc(o.amount) + '</div>' +
       '</div>').join('') + '</div>';
 }
 
@@ -884,7 +879,6 @@ async function addOrUpdateOrder() {
   const date = document.getElementById('inpDate').value;
   const service = document.getElementById('inpService').value;
   const amount = document.getElementById('inpAmount').value;
-  const completedAmount = document.getElementById('inpCompletedAmount').value;
   const status = document.getElementById('inpStatus').value;
   const notes = document.getElementById('inpNotes').value.trim();
 
@@ -893,10 +887,10 @@ async function addOrUpdateOrder() {
   if (editingId) {
     const idx = orders.findIndex(o => o.id === editingId);
     if (idx !== -1) {
-      orders[idx] = { ...orders[idx], name, phone, time, wechat, date, service, amount, completedAmount, status, notes };
+      orders[idx] = { ...orders[idx], name, phone, time, wechat, date, service, amount, status, notes };
     }
   } else {
-    orders.unshift({ id: genId(), name, phone, time, wechat, date, service, amount, completedAmount, status, notes, createdAt: Date.now() });
+    orders.unshift({ id: genId(), name, phone, time, wechat, date, service, amount, status, notes, createdAt: Date.now() });
   }
 
   closeModal();
@@ -914,9 +908,6 @@ async function confirmOrder(id) {
   const idx = orders.findIndex(o => o.id === id);
   if (idx === -1) return;
   orders[idx].status = 'completed';
-  if (!orders[idx].completedAmount && orders[idx].amount) {
-    orders[idx].completedAmount = orders[idx].amount;
-  }
   render();
   await syncSave();
   showToast('已确认 ✅');
@@ -945,7 +936,7 @@ function openModal(order) {
   document.getElementById("inpTime").value = order ? (order.time || "") : "";
   document.getElementById('inpService').value = order ? (order.service || '') : '';
   document.getElementById('inpAmount').value = order ? (order.amount || '') : '';
-  document.getElementById('inpCompletedAmount').value = order ? (order.completedAmount || '') : '';
+  
   document.getElementById('inpStatus').value = order ? (order.status || 'pending') : 'pending';
   document.getElementById('inpNotes').value = order ? (order.notes || '') : '';
   document.getElementById('modal').classList.add('open');
