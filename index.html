@@ -459,6 +459,82 @@ body {
     --shadow: 0 2px 12px rgba(0,0,0,0.25);
   }
 }
+/* View toggle */
+.view-toggle {
+  display: flex;
+  gap: 0;
+  padding: 0 16px;
+  margin-top: -16px;
+  position: relative;
+  z-index: 11;
+  justify-content: center;
+}
+.view-toggle button {
+  flex: 1;
+  max-width: 160px;
+  padding: 8px 0;
+  border: 2px solid var(--pink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--card);
+  color: var(--pink-dark);
+}
+.view-toggle button:first-child {
+  border-radius: 10px 0 0 10px;
+  border-right: none;
+}
+.view-toggle button:last-child {
+  border-radius: 0 10px 10px 0;
+  border-left: none;
+}
+.view-toggle button.active {
+  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+  color: #fff;
+  border-color: var(--pink-dark);
+}
+
+/* Income view */
+.income-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 4px 16px 12px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.income-card .total-amount {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--pink-dark);
+  margin: 8px 0;
+}
+.income-card .total-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.income-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.income-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.income-item .ii-date { font-size: 12px; color: var(--text-secondary); min-width: 80px; }
+.income-item .ii-info { flex: 1; min-width: 0; }
+.income-item .ii-name { font-size: 14px; font-weight: 600; }
+.income-item .ii-service { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.income-item .ii-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+}
+}
 </style>
 </head>
 <body>
@@ -470,6 +546,11 @@ body {
     <span class="sync-dot offline" id="syncDot"></span>
     <span id="syncText">加载中...</span>
   </div>
+</div>
+
+<div class="view-toggle">
+  <button class="active" id="viewOrders" onclick="switchView('orders')">📋 订单</button>
+  <button id="viewIncome" onclick="switchView('income')">💰 收入</button>
 </div>
 
 <div class="stats" id="stats">
@@ -571,6 +652,7 @@ const CACHE_VERSION = 2;
 let orders = [];
 let filter = 'all';
 let dateFilter = '';
+let viewMode = 'orders';
 let editingId = null;
 let currentSha = null;
 let syncStatus = 'loading'; // loading | synced | error | offline | saving
@@ -677,6 +759,10 @@ function setSyncStatus(status, text) {
 
 // ====== UI ======
 function render() {
+  if (viewMode === 'income') {
+    renderIncome();
+    return;
+  }
   const filtered = orders.filter(o => (filter === 'all' || o.status === filter) && (dateFilter === '' || o.date === dateFilter));
   const list = document.getElementById('orderList');
 
@@ -738,6 +824,57 @@ function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+function renderIncome() {
+  const completed = orders.filter(o => o.status === 'completed' && o.completedAmount && parseFloat(o.completedAmount) > 0)
+    .sort((a, b) => (b.date || '') < (a.date || '') ? -1 : (b.date || '') > (a.date || '') ? 1 : 0);
+  const total = completed.reduce((sum, o) => sum + parseFloat(o.completedAmount || 0), 0);
+
+  // Update stats
+  document.getElementById('stat-all').textContent = completed.length;
+  document.getElementById('stat-pending').textContent = '¥' + total.toFixed(0);
+  document.getElementById('stat-confirmed').textContent = '';
+  document.getElementById('stat-completed').textContent = '';
+
+  const list = document.getElementById('orderList');
+  if (completed.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span class="material-icons">payments</span><p>暂无完成订单的收入</p></div>';
+    return;
+  }
+
+  list.innerHTML = '<div class="income-card"><div class="total-label">总收入</div><div class="total-amount">¥' + total.toFixed(0) + '</div></div><div class="income-list">' +
+    completed.map(o => '<div class="income-item">' +
+      '<div class="ii-date">' + esc(o.date || '') + (o.time ? ' ' + esc(o.time) : '') + '</div>' +
+      '<div class="ii-info"><div class="ii-name">' + (o.name ? esc(o.name) : '未命名') + '</div>' +
+      '<div class="ii-service">' + (o.service ? esc(o.service) : '') + '</div></div>' +
+      '<div class="ii-amount">¥' + esc(o.completedAmount) + '</div>' +
+      '</div>').join('') + '</div>';
+}
+
+function switchView(mode) {
+  viewMode = mode;
+  document.getElementById('viewOrders').className = mode === 'orders' ? 'active' : '';
+  document.getElementById('viewIncome').className = mode === 'income' ? 'active' : '';
+  // Hide/show stats labels based on mode
+  document.querySelectorAll('.stat-card .label').forEach((el, i) => {
+    if (mode === 'income') {
+      if (i === 0) el.textContent = '已完成';
+      else if (i === 1) el.textContent = '总收入';
+      else if (i === 2) el.textContent = '';
+      else if (i === 3) el.textContent = '';
+    } else {
+      if (i === 0) el.textContent = '全部';
+      else if (i === 1) el.textContent = '待确认';
+      else if (i === 2) el.textContent = '已确认';
+      else if (i === 3) el.textContent = '已完成';
+    }
+  });
+  const tabsEl = document.getElementById('tabs');
+  const dateFilterEl = document.querySelector('.date-filter');
+  if (tabsEl) tabsEl.style.display = mode === 'orders' ? 'flex' : 'none';
+  if (dateFilterEl) dateFilterEl.style.display = mode === 'orders' ? 'flex' : 'none';
+  render();
 }
 
 const statusMap = {
