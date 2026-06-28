@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>约妆订单管理</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+:root {
+  --pink: #e8a0b4;
+  --pink-light: #f7e0e8;
+  --pink-dark: #c46a85;
+  --bg: #faf5f7;
+  --card: #ffffff;
+  --text: #2d2327;
+  --text-secondary: #8a7a80;
+  --border: #f0e4e9;
+  --green: #7bc4a8;
+  --green-bg: #e8f5ef;
+  --orange: #e8b87a;
+  --orange-bg: #fdf3e6;
+  --blue: #7ab8d4;
+  --blue-bg: #e6f2f8;
+  --red: #d47a7a;
+  --red-bg: #f8e6e6;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --radius: 14px;
+  --safe-bottom: env(safe-area-inset-bottom, 12px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: calc(80px + var(--safe-bottom));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--pink-dark), var(--pink));
+  color: #fff;
+  padding: 48px 20px 28px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+.header p { font-size: 13px; opacity: 0.85; margin-top: 6px; }
+
+/* Stats bar */
+.stats {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px;
+  margin-top: -20px;
+  position: relative;
+  z-index: 11;
+}
+.stat-card {
+  flex: 1;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 12px 0;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-card .num { font-size: 22px; font-weight: 700; color: var(--pink-dark); }
+.stat-card .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+/* Tab filters */
+.tabs {
+  display: flex;
+  padding: 14px 16px 8px;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.tab.active {
+  background: var(--pink);
+  color: #fff;
+  border-color: var(--pink);
+}
+
+/* Order list */
+.order-list {
+  padding: 4px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.order-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+  transition: transform .15s;
+}
+.order-card:active { transform: scale(0.98); }
+.order-card .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-card .client-info { flex: 1; min-width: 0; }
+.order-card .name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.order-card .contact {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.order-card .contact a {
+  color: var(--pink-dark);
+  text-decoration: none;
+}
+.order-card .contact .mat-icon {
+  font-size: 14px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-pending { background: var(--orange-bg); color: #bf8a40; }
+.status-confirmed { background: var(--blue-bg); color: #5288a8; }
+.status-completed { background: var(--green-bg); color: #4a9b7a; }
+.status-cancelled { background: var(--red-bg); color: #b05c5c; }
+
+.order-card .meta {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.order-card .meta .mat-icon {
+  font-size: 15px;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+.order-card .notes {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.order-card .actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+.order-card .actions button {
+  border: none;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all .15s;
+}
+.order-card .actions button:active { opacity: 0.6; }
+.order-card .actions .btn-edit { color: var(--pink-dark); background: var(--pink-light); }
+.order-card .actions .btn-delete { color: var(--red); background: var(--red-bg); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.empty-state .mat-icon {
+  font-size: 56px;
+  color: var(--border);
+}
+.empty-state p { margin-top: 12px; font-size: 14px; }
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: calc(20px + var(--safe-bottom));
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(200, 100, 130, 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: transform .2s;
+}
+.fab:active { transform: scale(0.9); }
+.fab .mat-icon { font-size: 28px; }
+
+/* Modal overlay */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  justify-content: center;
+  align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card);
+  width: 100%;
+  max-height: 92vh;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px;
+  overflow-y: auto;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.modal .form-group {
+  margin-bottom: 16px;
+}
+.modal label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.modal input, .modal select, .modal textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  background: var(--bg);
+  outline: none;
+  transition: border .2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus {
+  border-color: var(--pink);
+}
+.modal textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.modal .btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+.modal .btn-row button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.modal .btn-row button:active { opacity: 0.7; }
+.modal .btn-cancel {
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+.modal .btn-save {
+  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+  color: #fff;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 300;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* Quick call/msg inline */
+.quick-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.quick-contact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-decoration: none;
+  background: var(--pink-light);
+  color: var(--pink-dark);
+}
+
+/* WeChat link helper */
+.wx-tip {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 8px 16px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c181a;
+    --card: #252023;
+    --text: #ede0e5;
+    --text-secondary: #9a8a90;
+    --border: #352e31;
+    --shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌸 约妆管理</h1>
+  <p>客单记录 · 随时查看</p>
+</div>
+
+<div class="stats" id="stats">
+  <div class="stat-card"><div class="num" id="stat-all">0</div><div class="label">全部</div></div>
+  <div class="stat-card"><div class="num" id="stat-pending">0</div><div class="label">待确认</div></div>
+  <div class="stat-card"><div class="num" id="stat-confirmed">0</div><div class="label">已确认</div></div>
+  <div class="stat-card"><div class="num" id="stat-completed">0</div><div class="label">已完成</div></div>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-filter="all">全部</div>
+  <div class="tab" data-filter="pending">待确认</div>
+  <div class="tab" data-filter="confirmed">已确认</div>
+  <div class="tab" data-filter="completed">已完成</div>
+  <div class="tab" data-filter="cancelled">已取消</div>
+</div>
+
+<div class="order-list" id="orderList"></div>
+
+<button class="fab" id="addBtn"><span class="material-icons">add</span></button>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">新增订单</h2>
+    <div class="form-group">
+      <label>客人姓名 *</label>
+      <input type="text" id="inpName" placeholder="输入客人称呼">
+    </div>
+    <div class="form-group">
+      <label>手机号</label>
+      <input type="tel" id="inpPhone" placeholder="输入手机号">
+    </div>
+    <div class="form-group">
+      <label>微信号</label>
+      <input type="text" id="inpWechat" placeholder="微信号 / 二维码">
+    </div>
+    <div class="form-group">
+      <label>约妆日期 *</label>
+      <input type="date" id="inpDate">
+    </div>
+    <div class="form-group">
+      <label>服务项目</label>
+      <select id="inpService">
+        <option value="日常妆">日常妆</option>
+        <option value="新娘妆">新娘妆</option>
+        <option value="晚宴妆">晚宴妆</option>
+        <option value="写真妆">写真妆</option>
+        <option value="古风妆">古风妆</option>
+        <option value="舞台妆">舞台妆</option>
+        <option value="亲子妆">亲子妆</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>状态</label>
+      <select id="inpStatus">
+        <option value="pending">待确认</option>
+        <option value="confirmed">已确认</option>
+        <option value="completed">已完成</option>
+        <option value="cancelled">已取消</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>备注</label>
+      <textarea id="inpNotes" placeholder="化妆要求、地址、注意事项等"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-cancel" id="cancelBtn">取消</button>
+      <button class="btn-save" id="saveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ====== Data ======
+const STORAGE_KEY = 'orders_makeup';
+let orders = [];
+let filter = 'all';
+let editingId = null;
+
+function load() {
+  try {
+    orders = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch { orders = []; }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+
+// ====== Status helpers ======
+const statusMap = {
+  pending: { label: '待确认', cls: 'status-pending' },
+  confirmed: { label: '已确认', cls: 'status-confirmed' },
+  completed: { label: '已完成', cls: 'status-completed' },
+  cancelled: { label: '已取消', cls: 'status-cancelled' }
+};
+
+// ====== Render ======
+function render() {
+  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  const list = document.getElementById('orderList');
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="material-icons">sentiment_satisfied</span>
+        <p>${orders.length === 0 ? '还没有订单，点右下角 + 新增' : '没有符合条件的订单'}</p>
+      </div>`;
+  } else {
+    list.innerHTML = filtered.map(o => {
+      const s = statusMap[o.status] || statusMap.pending;
+      const day = o.date || '待定';
+      const svc = o.service || '未指定';
+      const dateObj = o.date ? new Date(o.date) : null;
+      const weekday = dateObj ? ['日','一','二','三','四','五','六'][dateObj.getDay()] : '';
+      return `
+        <div class="order-card">
+          <div class="row">
+            <div class="client-info">
+              <div class="name">${esc(o.name)}</div>
+              <div class="contact">
+                ${o.phone ? `<span><span class="material-icons mat-icon">phone</span>${esc(o.phone)}</span>` : ''}
+                ${o.wechat ? `<span><span class="material-icons mat-icon">chat</span>${esc(o.wechat)}</span>` : ''}
+              </div>
+            </div>
+            <span class="status-badge ${s.cls}">${s.label}</span>
+          </div>
+          <div class="meta">
+            <span><span class="material-icons mat-icon">event</span>${esc(day)}${weekday ? ' 周' + weekday : ''}</span>
+            <span><span class="material-icons mat-icon">spa</span>${esc(svc)}</span>
+          </div>
+          ${o.notes ? `<div class="notes">📝 ${esc(o.notes)}</div>` : ''}
+          <div class="quick-contact">
+            ${o.phone ? `<a href="tel:${esc(o.phone)}"><span class="material-icons mat-icon">call</span>打电话</a>` : ''}
+            ${o.wechat ? `<a href="weixin://"><span class="material-icons mat-icon">chat</span>微信</a>` : ''}
+          </div>
+          <div class="actions">
+            <button class="btn-edit" onclick="editOrder('${o.id}')"><span class="material-icons" style="font-size:14px">edit</span> 编辑</button>
+            <button class="btn-delete" onclick="deleteOrder('${o.id}')"><span class="material-icons" style="font-size:14px">delete</span> 删除</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Stats
+  const all = orders.length;
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const confirmed = orders.filter(o => o.status === 'confirmed').length;
+  const completed = orders.filter(o => o.status === 'completed').length;
+  document.getElementById('stat-all').textContent = all;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-confirmed').textContent = confirmed;
+  document.getElementById('stat-completed').textContent = completed;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ====== CRUD ======
+function openModal(order) {
+  editingId = order ? order.id : null;
+  document.getElementById('modalTitle').textContent = order ? '编辑订单' : '新增订单';
+  document.getElementById('inpName').value = order ? order.name : '';
+  document.getElementById('inpPhone').value = order ? (order.phone || '') : '';
+  document.getElementById('inpWechat').value = order ? (order.wechat || '') : '';
+  document.getElementById('inpDate').value = order ? (order.date || '') : (new Date().toISOString().slice(0,10));
+  document.getElementById('inpService').value = order ? (order.service || '日常妆') : '日常妆';
+  document.getElementById('inpStatus').value = order ? (order.status || 'pending') : 'pending';
+  document.getElementById('inpNotes').value = order ? (order.notes || '') : '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function saveOrder() {
+  const name = document.getElementById('inpName').value.trim();
+  const phone = document.getElementById('inpPhone').value.trim();
+  const wechat = document.getElementById('inpWechat').value.trim();
+  const date = document.getElementById('inpDate').value;
+  const service = document.getElementById('inpService').value;
+  const status = document.getElementById('inpStatus').value;
+  const notes = document.getElementById('inpNotes').value.trim();
+
+  if (!name) {
+    showToast('请填写客人姓名');
+    return;
+  }
+  if (!date) {
+    showToast('请选择约妆日期');
+    return;
+  }
+
+  if (editingId) {
+    const idx = orders.findIndex(o => o.id === editingId);
+    if (idx !== -1) {
+      orders[idx] = { ...orders[idx], name, phone, wechat, date, service, status, notes };
+    }
+  } else {
+    orders.unshift({ id: genId(), name, phone, wechat, date, service, status, notes, createdAt: Date.now() });
+  }
+
+  save();
+  closeModal();
+  render();
+  showToast(editingId ? '订单已更新 ✅' : '订单已添加 ✅');
+}
+
+function editOrder(id) {
+  const order = orders.find(o => o.id === id);
+  if (order) openModal(order);
+}
+
+function deleteOrder(id) {
+  if (!confirm('确定要删除该订单吗？')) return;
+  orders = orders.filter(o => o.id !== id);
+  save();
+  render();
+  showToast('订单已删除');
+}
+
+// ====== Toast ======
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ====== Init ======
+load();
+render();
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    filter = tab.dataset.filter;
+    render();
+  });
+});
+
+// Modal buttons
+document.getElementById('addBtn').addEventListener('click', () => openModal(null));
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('saveBtn').addEventListener('click', saveOrder);
+document.getElementById('modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Keyboard shortcut: Esc to close modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+
+<div class="wx-tip">💡 在微信里收藏此页面，或添加到桌面即可随时打开</div>
+</body>
+</html>
