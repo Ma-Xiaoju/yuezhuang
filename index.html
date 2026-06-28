@@ -48,6 +48,16 @@ body {
 .header p { font-size: 13px; opacity: 0.85; margin-top: 6px; }
 
 /* Sync bar */
+.hdr-sync-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-left: 5px;
+  flex-shrink: 0;
+}
+
 .sync-indicator {
   position: fixed;
   bottom: calc(90px + var(--safe-bottom));
@@ -527,7 +537,7 @@ body {
 <body>
 
 <div class="header">
-  <h1>🌸 约妆管理</h1>
+  <h1>🌸 约妆管理<span class="hdr-sync-dot sync-dot" id="hdrSyncDot"></span></h1>
   <p>客单记录 · 多人实时同步</p>
   <div class="sync-bar" class="sync-indicator" id="syncIndicator">
     <span class="sync-dot offline" id="syncDot"></span>
@@ -736,6 +746,8 @@ function setSyncStatus(status, text) {
   const dot = document.getElementById('syncDot');
   const txt = document.getElementById('syncText');
   dot.className = 'sync-dot ' + status;
+  const hdrDot = document.getElementById('hdrSyncDot');
+  if (hdrDot) hdrDot.className = 'hdr-sync-dot sync-dot ' + status;
   if (text) txt.textContent = text;
 }
 
