@@ -115,6 +115,45 @@ body {
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar { display: none; }
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.date-filter::-webkit-scrollbar { display: none; }
+.date-filter-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
+.date-filter input[type="date"] {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+}
+.date-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.date-btn:active { opacity: 0.6; }
+.date-filter .date-btn.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+.date-filter .date-clear { color: var(--red); border-color: var(--red); }
 .tab {
   flex-shrink: 0;
   padding: 6px 16px;
@@ -448,6 +487,13 @@ body {
   <div class="tab" data-filter="cancelled">已取消</div>
 </div>
 
+<div class="date-filter">
+  <span class="date-filter-label">📅</span>
+  <input type="date" id="dateFilterInput">
+  <button class="date-btn" id="dateTodayBtn">今天</button>
+  <button class="date-btn date-clear" id="dateClearBtn">清除</button>
+</div>
+
 <div class="order-list" id="orderList">
   <div class="loading-skeleton"><span class="material-icons" style="font-size:32px;display:block;margin-bottom:8px;">cloud_sync</span>正在同步数据...</div>
 </div>
@@ -520,6 +566,7 @@ const CACHE_VERSION = 2;
 // ====== Data ======
 let orders = [];
 let filter = 'all';
+let dateFilter = '';
 let editingId = null;
 let currentSha = null;
 let syncStatus = 'loading'; // loading | synced | error | offline | saving
@@ -626,7 +673,7 @@ function setSyncStatus(status, text) {
 
 // ====== UI ======
 function render() {
-  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  const filtered = orders.filter(o => (filter === 'all' || o.status === filter) && (dateFilter === '' || o.date === dateFilter));
   const list = document.getElementById('orderList');
 
   if (filtered.length === 0) {
@@ -799,6 +846,23 @@ async function init() {
       filter = tab.dataset.filter;
       render();
     });
+  });
+
+  // Date filter
+  document.getElementById('dateFilterInput').addEventListener('change', function() {
+    dateFilter = this.value;
+    render();
+  });
+  document.getElementById('dateTodayBtn').addEventListener('click', function() {
+    const today = todayStr();
+    document.getElementById('dateFilterInput').value = today;
+    dateFilter = today;
+    render();
+  });
+  document.getElementById('dateClearBtn').addEventListener('click', function() {
+    document.getElementById('dateFilterInput').value = '';
+    dateFilter = '';
+    render();
   });
 
   // Modal buttons
