@@ -237,6 +237,23 @@ body {
 .order-card .actions .btn-edit { color: var(--pink-dark); background: var(--pink-light); }
 .order-card .actions .btn-delete { color: var(--red); background: var(--red-bg); }
 
+.btn-confirm {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7bc4a8, #5aad8e);
+  color: #fff;
+  transition: all .15s;
+  letter-spacing: 1px;
+}
+.btn-confirm:active { opacity: 0.7; transform: scale(0.98); }
+
 .quick-contact {
   display: flex;
   gap: 8px;
@@ -650,6 +667,7 @@ function render() {
             ${o.phone ? `<a href="tel:${esc(o.phone)}"><span class="material-icons mat-icon">call</span>打电话</a>` : ''}
             ${o.wechat ? `<a href="weixin://"><span class="material-icons mat-icon">chat</span>微信</a>` : ''}
           </div>
+          ${o.status === 'pending' ? `<button class="btn-confirm" onclick="confirmOrder('${o.id}')">确认预约 ✓</button>` : ''}
           <div class="actions">
             <button class="btn-edit" onclick="editOrder('${o.id}')"><span class="material-icons" style="font-size:14px">edit</span> 编辑</button>
             <button class="btn-delete" onclick="deleteOrder('${o.id}')"><span class="material-icons" style="font-size:14px">delete</span> 删除</button>
@@ -710,6 +728,15 @@ async function addOrUpdateOrder() {
 function editOrder(id) {
   const order = orders.find(o => o.id === id);
   if (order) openModal(order);
+}
+
+async function confirmOrder(id) {
+  const idx = orders.findIndex(o => o.id === id);
+  if (idx === -1) return;
+  orders[idx].status = 'confirmed';
+  render();
+  await syncSave();
+  showToast('已确认 ✅');
 }
 
 async function deleteOrder(id) {
