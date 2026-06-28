@@ -1,32 +1,5 @@
 [
   {
-    "id": "mqxk0t9ktpv8",
-    "name": "猪妞",
-    "phone": "",
-    "time": "",
-    "wechat": "",
-    "date": "2026-11-09",
-    "service": "萌妹",
-    "amount": "99",
-    "status": "completed",
-    "notes": "",
-    "createdAt": 1782636964904
-  },
-  {
-    "id": "mqxjharozokh",
-    "name": "猪哥",
-    "phone": "",
-    "time": "08:40",
-    "wechat": "",
-    "date": "2026-06-28",
-    "service": "龙",
-    "amount": "999",
-    "completedAmount": "999",
-    "status": "completed",
-    "notes": "",
-    "createdAt": 1782636054468
-  },
-  {
     "id": "mqxj4ayqda01",
     "name": "7.7号",
     "phone": "",
