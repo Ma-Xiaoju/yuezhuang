@@ -88,6 +88,7 @@ body {
   margin-top: -20px;
   position: relative;
   z-index: 11;
+  justify-content: center;
 }
 .stat-card {
   flex: 1;
@@ -547,7 +548,6 @@ body {
   <div class="tab active" data-filter="all">全部</div>
   <div class="tab" data-filter="pending">待确认</div>
   <div class="tab" data-filter="completed">已完成</div>
-  <div class="tab" data-filter="cancelled">已取消</div>
 </div>
 
 <div class="date-filter">
@@ -598,7 +598,6 @@ body {
       <select id="inpStatus">
         <option value="pending">待确认</option>
         <option value="completed">已完成</option>
-        <option value="cancelled">已取消</option>
       </select>
     </div>
     <div class="form-group">
@@ -752,7 +751,7 @@ function render() {
       </div>`;
   } else {
     list.innerHTML = filtered.map(o => {
-      const s = statusMap[o.status] || { label: '已确认', cls: 'status-confirmed' };
+      const s = statusMap[o.status] || (o.status === 'cancelled' ? { label: '已取消', cls: 'status-cancelled' } : { label: '已确认', cls: 'status-confirmed' });
       const day = o.date || "待定";
   let dateDisplay = day;
   if (o.time) {
@@ -852,7 +851,6 @@ function switchView(mode) {
 const statusMap = {
   pending: { label: '待确认', cls: 'status-pending' },
   completed: { label: '已完成', cls: 'status-completed' },
-  cancelled: { label: '已取消', cls: 'status-cancelled' }
 };
 
 // ====== CRUD ======
