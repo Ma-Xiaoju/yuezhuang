@@ -540,14 +540,12 @@ body {
 <div class="stats" id="stats">
   <div class="stat-card"><div class="num" id="stat-all">-</div><div class="label">全部</div></div>
   <div class="stat-card"><div class="num" id="stat-pending">-</div><div class="label">待确认</div></div>
-  <div class="stat-card"><div class="num" id="stat-confirmed">-</div><div class="label">已确认</div></div>
   <div class="stat-card"><div class="num" id="stat-completed">-</div><div class="label">已完成</div></div>
 </div>
 
 <div class="tabs" id="tabs">
   <div class="tab active" data-filter="all">全部</div>
   <div class="tab" data-filter="pending">待确认</div>
-  <div class="tab" data-filter="confirmed">已确认</div>
   <div class="tab" data-filter="completed">已完成</div>
   <div class="tab" data-filter="cancelled">已取消</div>
 </div>
@@ -599,7 +597,6 @@ body {
       <label>状态</label>
       <select id="inpStatus">
         <option value="pending">待确认</option>
-        <option value="confirmed">已确认</option>
         <option value="completed">已完成</option>
         <option value="cancelled">已取消</option>
       </select>
@@ -796,7 +793,6 @@ function render() {
 
   document.getElementById('stat-all').textContent = orders.length;
   document.getElementById('stat-pending').textContent = orders.filter(o => o.status === 'pending').length;
-  document.getElementById('stat-confirmed').textContent = orders.filter(o => o.status === 'confirmed').length;
   document.getElementById('stat-completed').textContent = orders.filter(o => o.status === 'completed').length;
 }
 
@@ -814,7 +810,6 @@ function renderIncome() {
   // Update stats
   document.getElementById('stat-all').textContent = completed.length;
   document.getElementById('stat-pending').textContent = '¥' + total.toFixed(0);
-  document.getElementById('stat-confirmed').textContent = '';
   document.getElementById('stat-completed').textContent = '';
 
   const list = document.getElementById('orderList');
@@ -838,8 +833,8 @@ function switchView(mode) {
   document.getElementById('viewIncome').className = mode === 'income' ? 'active' : '';
   // Update stat cards based on mode
   document.querySelectorAll('.stat-card').forEach((el, i) => {
-    const labels = ['全部','待确认','已确认','已完成'];
-    const incomeLabels = ['已完成','总收入','',''];
+    const labels = ['全部','待确认','已完成'];
+    const incomeLabels = ['已完成','总收入',''];
     const isVisible = mode === 'orders' || i < 2;
     el.style.display = isVisible ? '' : 'none';
     const labelEl = el.querySelector('.label');
