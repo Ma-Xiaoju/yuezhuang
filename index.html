@@ -752,7 +752,7 @@ function render() {
       </div>`;
   } else {
     list.innerHTML = filtered.map(o => {
-      const s = statusMap[o.status] || statusMap.pending;
+      const s = statusMap[o.status] || { label: '已确认', cls: 'status-confirmed' };
       const day = o.date || "待定";
   let dateDisplay = day;
   if (o.time) {
@@ -851,7 +851,6 @@ function switchView(mode) {
 
 const statusMap = {
   pending: { label: '待确认', cls: 'status-pending' },
-  confirmed: { label: '已确认', cls: 'status-confirmed' },
   completed: { label: '已完成', cls: 'status-completed' },
   cancelled: { label: '已取消', cls: 'status-cancelled' }
 };
@@ -896,7 +895,7 @@ async function confirmOrder(id) {
   orders[idx].status = 'completed';
   render();
   await syncSave();
-  showToast('已确认 ✅');
+  showToast('已完成 ✅');
 }
 
 async function deleteOrder(id) {
