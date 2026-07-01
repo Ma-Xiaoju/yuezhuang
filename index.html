@@ -751,7 +751,7 @@ function render() {
       </div>`;
   } else {
     list.innerHTML = filtered.map(o => {
-      const s = statusMap[o.status] || (o.status === 'cancelled' ? { label: '已取消', cls: 'status-cancelled' } : { label: '已确认', cls: 'status-confirmed' });
+      const s = statusMap[o.status] || { label: "—", cls: "status-pending" };
       const day = o.date || "待定";
   let dateDisplay = day;
   if (o.time) {
