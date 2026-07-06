@@ -1,5 +1,18 @@
 [
   {
+    "id": "mr9989r3jbxv",
+    "name": "7.7",
+    "phone": "",
+    "time": "06:00",
+    "wechat": "",
+    "date": "2026-07-07",
+    "service": "",
+    "amount": "108",
+    "status": "pending",
+    "notes": "",
+    "createdAt": 1783344431199
+  },
+  {
     "id": "mr997pxo5srz",
     "name": "7.6",
     "phone": "",
@@ -8,7 +21,7 @@
     "date": "2026-07-06",
     "service": "两位",
     "amount": "170",
-    "status": "pending",
+    "status": "completed",
     "notes": "",
     "createdAt": 1783344405516
   },
