@@ -181,6 +181,10 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   color: #fff;
   border-color: var(--pink);
 }
+.tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(196,106,133,.28);
+  outline-offset: 2px;
+}
 
 /* Order list */
 .order-list {
@@ -196,7 +200,12 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   box-shadow: var(--shadow);
   position: relative;
   transition: transform .15s;
+  animation: cardIn .28s ease both;
 }
+@keyframes cardIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.order-card:nth-child(2) { animation-delay:.03s; }
+.order-card:nth-child(3) { animation-delay:.06s; }
+.order-card:nth-child(4) { animation-delay:.09s; }
 .order-card:active { transform: scale(0.98); }
 .order-card .row {
   display: flex;
@@ -367,15 +376,18 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 
 /* Modal */
 .modal-overlay {
-  display: none;
+  display: flex;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
   z-index: 200;
   justify-content: center;
   align-items: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility .2s ease;
 }
-.modal-overlay.open { display: flex; }
+.modal-overlay.open { opacity:1; visibility:visible; }
 .modal {
   background: var(--card);
   width: 100%;
@@ -383,8 +395,11 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   border-radius: 20px 20px 0 0;
   padding: 24px 20px;
   overflow-y: auto;
-  animation: slideUp .25s ease;
+  transform: translateY(28px) scale(.98);
+  opacity:0;
+  transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
 }
+.modal-overlay.open .modal { transform:none; opacity:1; }
 @keyframes slideUp {
   from { transform: translateY(40px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -453,11 +468,16 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   font-size: 14px;
   z-index: 300;
   opacity: 0;
-  transition: opacity .3s;
+  transition: opacity .2s, transform .2s;
   pointer-events: none;
   white-space: nowrap;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  max-width:calc(100vw - 32px);
 }
-.toast.show { opacity: 1; }
+.toast.show { opacity: 1; transform:translateX(-50%) translateY(4px); pointer-events:auto; }
+.toast-action { border:0; background:transparent; color:#ffd4e0; font-weight:700; cursor:pointer; padding:3px; }
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -578,6 +598,16 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .order-card .actions { padding-top:10px; border-top:1px solid var(--border); }
 .quick-contact { margin-top:10px; }
 .fab { width:60px; height:60px; right:22px; bottom:calc(22px + var(--safe-bottom)); font-size:32px; font-weight:300; }
+.fab { transition:transform .22s ease, box-shadow .22s ease; }
+.fab:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(200,100,130,.42); }
+.fab.modal-open { transform:rotate(45deg) scale(.92); }
+.btn-save[disabled] { opacity:.65; cursor:wait; }
+.empty-add { margin-top:16px; border:0; border-radius:12px; padding:10px 16px; background:var(--pink-light); color:var(--pink-dark); font-weight:600; cursor:pointer; }
+.content-switch { animation:contentIn .22s ease; }
+@keyframes contentIn { from { opacity:.35; transform:translateY(4px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
 .modal-overlay { align-items:center; padding:18px; }
 .modal { max-width:520px; max-height:90vh; border-radius:22px; padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px)); }
 .modal h2 { text-align:left; font-size:21px; margin-bottom:22px; }
@@ -696,7 +726,7 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 // ====== Local data config ======
@@ -712,6 +742,7 @@ let viewMode = 'orders';
 let editingId = null;
 let currentSha = null;
 let syncStatus = 'loading'; // loading | synced | error | offline | saving
+let isSaving = false;
 
 // ====== Sync Functions ======
 async function syncLoad() {
@@ -769,6 +800,7 @@ function render() {
       <div class="empty-state">
         <span class="material-icons">${orders.length === 0 ? 'cosmetics' : 'search_off'}</span>
         <p>${orders.length === 0 ? '还没有订单，点右下角 + 新增' : '没有符合条件的订单'}</p>
+        ${orders.length === 0 ? '<button class="empty-add" onclick="openModal(null)">新增第一笔订单</button>' : ''}
       </div>`;
   } else {
     list.innerHTML = filtered.map(o => {
@@ -867,6 +899,10 @@ function switchView(mode) {
   if (dateFilterEl) dateFilterEl.style.display = 'flex';
   if (dateLabel) dateLabel.textContent = mode === 'income' ? '💰' : '📅';
   render();
+  const list = document.getElementById('orderList');
+  list.classList.remove('content-switch');
+  requestAnimationFrame(() => list.classList.add('content-switch'));
+  gentleFeedback();
 }
 
 const statusMap = {
@@ -876,6 +912,7 @@ const statusMap = {
 
 // ====== CRUD ======
 async function addOrUpdateOrder() {
+  if (isSaving) return;
   const name = document.getElementById('inpName').value.trim();
   const phone = document.getElementById("inpPhone").value.trim();
   const time = document.getElementById("inpTime").value;
@@ -886,7 +923,17 @@ async function addOrUpdateOrder() {
   const status = document.getElementById('inpStatus').value;
   const notes = document.getElementById('inpNotes').value.trim();
 
-  if (!date) { showToast('请选择约妆日期'); return; }
+  if (!date) {
+    showToast('请选择约妆日期');
+    document.getElementById('inpDate').focus();
+    return;
+  }
+
+  isSaving = true;
+  const saveBtn = document.getElementById('saveBtn');
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = '保存中…';
 
   if (editingId) {
     const idx = orders.findIndex(o => o.id === editingId);
@@ -897,10 +944,17 @@ async function addOrUpdateOrder() {
     orders.unshift({ id: genId(), name, phone, time, wechat, date, service, amount, status, notes, createdAt: Date.now() });
   }
 
-  closeModal();
   render();
-  await syncSave();
-  showToast(editingId ? '订单已更新 ✅' : '订单已添加 ✅');
+  const success = await syncSave();
+  isSaving = false;
+  saveBtn.disabled = false;
+  saveBtn.textContent = originalText;
+  if (success) {
+    const wasEditing = Boolean(editingId);
+    closeModal();
+    showToast(wasEditing ? '订单已更新 ✅' : '订单已添加 ✅');
+    gentleFeedback();
+  }
 }
 
 function editOrder(id) {
@@ -915,14 +969,22 @@ async function confirmOrder(id) {
   render();
   await syncSave();
   showToast('已完成 ✅');
+  gentleFeedback();
 }
 
 async function deleteOrder(id) {
-  if (!confirm('确定要删除该订单吗？')) return;
-  orders = orders.filter(o => o.id !== id);
+  const index = orders.findIndex(o => o.id === id);
+  if (index === -1) return;
+  const removed = orders[index];
+  orders.splice(index, 1);
   render();
   await syncSave();
-  showToast('订单已删除');
+  showToast('订单已删除', '撤销', async () => {
+    orders.splice(Math.min(index, orders.length), 0, removed);
+    render();
+    await syncSave();
+    showToast('已恢复订单');
+  });
 }
 
 function genId() {
@@ -944,10 +1006,16 @@ function openModal(order) {
   document.getElementById('inpStatus').value = order ? (order.status || 'pending') : 'pending';
   document.getElementById('inpNotes').value = order ? (order.notes || '') : '';
   document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('addBtn').classList.add('modal-open');
+  setTimeout(() => document.getElementById('inpName').focus(), 120);
 }
 
 function closeModal() {
+  if (isSaving) return;
   document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('addBtn').classList.remove('modal-open');
 }
 
 function todayStr() {
@@ -957,12 +1025,30 @@ function todayStr() {
 
 // ====== Toast ======
 let toastTimer = null;
-function showToast(msg) {
+function showToast(msg, actionLabel = '', actionFn = null) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
+  el.replaceChildren();
+  const text = document.createElement('span');
+  text.textContent = msg;
+  el.appendChild(text);
+  if (actionLabel && actionFn) {
+    const action = document.createElement('button');
+    action.className = 'toast-action';
+    action.textContent = actionLabel;
+    action.addEventListener('click', async () => {
+      clearTimeout(toastTimer);
+      el.classList.remove('show');
+      await actionFn();
+    }, { once:true });
+    el.appendChild(action);
+  }
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+  toastTimer = setTimeout(() => el.classList.remove('show'), actionLabel ? 4500 : 2500);
+}
+
+function gentleFeedback() {
+  if (navigator.vibrate) navigator.vibrate(12);
 }
 
 // ====== Init ======
@@ -972,28 +1058,37 @@ async function init() {
 
   // Tabs
   document.querySelectorAll('.tab').forEach(tab => {
+    tab.setAttribute('role', 'button');
+    tab.setAttribute('tabindex', '0');
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       filter = tab.dataset.filter;
       render();
+      gentleFeedback();
+    });
+    tab.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tab.click(); }
     });
   });
 
   // Date filter
   document.getElementById('dateFilterInput').addEventListener('change', function() {
     dateFilter = this.value;
+    document.getElementById('dateTodayBtn').classList.toggle('active', dateFilter === todayStr());
     render();
   });
   document.getElementById('dateTodayBtn').addEventListener('click', function() {
     const today = todayStr();
     document.getElementById('dateFilterInput').value = today;
     dateFilter = today;
+    this.classList.add('active');
     render();
   });
   document.getElementById('dateClearBtn').addEventListener('click', function() {
     document.getElementById('dateFilterInput').value = '';
     dateFilter = '';
+    document.getElementById('dateTodayBtn').classList.remove('active');
     render();
   });
 
