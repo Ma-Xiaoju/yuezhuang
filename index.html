@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title>约妆订单管理</title>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
 :root {
   --pink: #e8a0b4;
@@ -29,6 +28,19 @@
   --safe-bottom: env(safe-area-inset-bottom, 12px);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
+.material-icons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  overflow: hidden;
+  font-size: 0 !important;
+}
+.material-icons::before {
+  content: "•";
+  font-size: 14px;
+  line-height: 1;
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
   background: var(--bg);
@@ -614,13 +626,8 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// ====== GitHub Sync Config ======
-const GITHUB_TOKEN = String.fromCharCode(103,104,112,95,118,98,85,66,74,88,70,106,71,72,76,87,75,105,88,119,56,81,73,69,79,88,75,118,119,103,106,74,49,110,51,97,53,112,113,49);
-const GH_OWNER = 'Ma-Xiaoju';
-const GH_REPO = 'yuezhuang';
-const GH_PATH = 'data/orders.json';
-const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
-const LS_KEY = 'orders_makeup_sync';
+// ====== Local data config ======
+// GitHub Pages is a public static site. Never put a write-capable token here.
 const LS_CACHE_KEY = 'orders_makeup_cache';
 const CACHE_VERSION = 2;
 
@@ -635,92 +642,33 @@ let syncStatus = 'loading'; // loading | synced | error | offline | saving
 
 // ====== Sync Functions ======
 async function syncLoad() {
-  setSyncStatus('loading', '正在同步...');
+  setSyncStatus('loading', '正在加载...');
   try {
-    const resp = await fetch(GH_API, {
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    if (resp.status === 200) {
-      const data = await resp.json();
-      currentSha = data.sha;
-      const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
-      const parsed = JSON.parse(decoded);
-      if (Array.isArray(parsed)) {
-        orders = parsed;
-        localStorage.setItem(LS_CACHE_KEY, decoded);
-        localStorage.setItem(LS_CACHE_KEY + '_ver', String(CACHE_VERSION));
-        setSyncStatus('synced', '已同步 ✓');
-        return;
-      }
-    } else if (resp.status === 404) {
-      // File doesn't exist yet — start fresh
-      currentSha = null;
-      orders = [];
-      setSyncStatus('synced', '新开始 ✓');
-      return;
-    }
-    throw new Error(`HTTP ${resp.status}`);
-  } catch (e) {
-    // Fallback to cache
     const cached = localStorage.getItem(LS_CACHE_KEY);
     const ver = parseInt(localStorage.getItem(LS_CACHE_KEY + '_ver') || '0', 10);
     if (cached && ver >= CACHE_VERSION) {
-      try {
-        orders = JSON.parse(cached);
-        setSyncStatus('offline', '离线模式（显示缓存）');
-        return;
-      } catch {}
+      const parsed = JSON.parse(cached);
+      orders = Array.isArray(parsed) ? parsed : [];
+    } else {
+      orders = [];
     }
+    setSyncStatus('synced', '本机数据 ✓');
+  } catch (e) {
     orders = [];
-    setSyncStatus('error', '同步失败，点击重试');
+    setSyncStatus('error', '本机数据读取失败');
   }
 }
 
 async function syncSave() {
   setSyncStatus('saving', '保存中...');
   try {
-    // First get latest sha to avoid conflicts
-    const getResp = await fetch(GH_API, {
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    let sha = null;
-    if (getResp.status === 200) {
-      const data = await getResp.json();
-      sha = data.sha;
-    } else if (getResp.status !== 404) {
-      throw new Error(`Failed to read: ${getResp.status}`);
-    }
-
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(orders, null, 2))));
-    const body = {
-      message: `更新订单数据 (${orders.length} 条)`,
-      content: content
-    };
-    if (sha) body.sha = sha;
-
-    const putResp = await fetch(GH_API, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v3+json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (putResp.status === 200 || putResp.status === 201) {
-      const result = await putResp.json();
-      currentSha = result.content.sha;
-      // Update cache
-      localStorage.setItem(LS_CACHE_KEY, JSON.stringify(orders, null, 2));
-      localStorage.setItem(LS_CACHE_KEY + '_ver', String(CACHE_VERSION));
-      setSyncStatus('synced', '已同步 ✓');
-      return true;
-    }
-    throw new Error(`Save failed: ${putResp.status}`);
+    localStorage.setItem(LS_CACHE_KEY, JSON.stringify(orders, null, 2));
+    localStorage.setItem(LS_CACHE_KEY + '_ver', String(CACHE_VERSION));
+    setSyncStatus('synced', '已保存到本机 ✓');
+    return true;
   } catch (e) {
     setSyncStatus('error', '同步失败');
-    showToast('⚠️ 数据已保存在本地，云端同步失败');
+    showToast('⚠️ 保存失败，请检查浏览器存储权限');
     return false;
   }
 }
@@ -989,7 +937,7 @@ async function init() {
     if (e.key === 'Escape') closeModal();
   });
 
-  // Click sync bar to retry
+  // Click status bar to retry reading local data
   document.getElementById('syncBar').addEventListener('click', async () => {
     if (syncStatus === 'error' || syncStatus === 'offline') {
       setSyncStatus('loading', '重新同步...');
