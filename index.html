@@ -49,6 +49,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+
 /* Header */
 .header {
   background: linear-gradient(135deg, var(--pink-dark), var(--pink));
@@ -532,17 +534,83 @@ body {
   color: var(--green);
   white-space: nowrap;
 }
+
+/* Layout refresh */
+.header {
+  padding: calc(32px + env(safe-area-inset-top, 0px)) 20px 52px;
+  text-align: left;
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 10px 30px rgba(196,106,133,.18);
+}
+.header h1 { font-size: 26px; letter-spacing: 1px; }
+.header p { margin-top: 8px; }
+.header-topline { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.sync-bar { margin: 0; padding: 7px 12px; width:auto; flex-shrink:0; }
+.view-toggle {
+  margin: 22px 0 0;
+  padding: 4px;
+  background: rgba(255,255,255,.16);
+  border-radius: 14px;
+  gap: 4px;
+}
+.view-toggle button { flex:1; padding:9px 16px; border:0; border-radius:11px; }
+.stats { margin-top: -28px; padding: 0 20px; gap: 12px; }
+.stat-card { padding: 16px 8px 14px; border-radius: 16px; box-shadow: 0 8px 24px rgba(90,55,70,.08); }
+.stat-card .num { font-size: 24px; }
+.stat-card .label { margin-top: 4px; }
+.controls { padding: 18px 16px 8px; }
+.tabs { padding: 0; gap: 8px; }
+.tab { flex:1; text-align:center; padding: 9px 12px; border-radius: 12px; }
+.date-filter {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+.date-filter input[type="date"] { min-width: 0; flex:1; padding: 7px 8px; border:0; background:var(--bg); }
+.date-btn { padding: 7px 11px; border-radius: 9px; }
+.order-list { padding: 8px 16px 24px; gap: 14px; }
+.order-card { padding: 18px; border-radius: 18px; box-shadow: 0 5px 20px rgba(90,55,70,.07); border:1px solid rgba(232,160,180,.1); }
+.order-card .name { font-size:17px; }
+.order-card .meta { margin-top:14px; gap:8px 14px; flex-wrap:wrap; line-height:1.6; }
+.order-card .notes { margin-top:12px; padding:10px 12px; }
+.order-card .actions { padding-top:10px; border-top:1px solid var(--border); }
+.quick-contact { margin-top:10px; }
+.fab { width:60px; height:60px; right:22px; bottom:calc(22px + var(--safe-bottom)); font-size:32px; font-weight:300; }
+.modal-overlay { align-items:center; padding:18px; }
+.modal { max-width:520px; max-height:90vh; border-radius:22px; padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px)); }
+.modal h2 { text-align:left; font-size:21px; margin-bottom:22px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+.form-group.full { grid-column:1 / -1; }
+.modal input, .modal select, .modal textarea { min-height:46px; background:var(--card); }
+.modal .btn-row { position:sticky; bottom:-24px; background:var(--card); padding-top:12px; padding-bottom:4px; }
+.income-card { margin:8px 16px 14px; border-radius:18px; padding:24px; }
+.income-list { gap:10px; }
+.income-item { border-radius:15px; padding:14px 16px; }
+
+@media (max-width: 360px) {
+  .header-topline { display:block; }
+  .sync-bar { margin-top:12px; width:max-content; }
+  .stats { padding:0 12px; gap:7px; }
+  .controls, .order-list { padding-left:12px; padding-right:12px; }
+  .date-filter-label { display:none; }
+  .form-grid { grid-template-columns:1fr; }
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🌸 约妆管理</h1>
-  <p>客单记录 · 多人实时同步</p>
-  <div class="sync-bar" id="syncBar">
-    <span class="sync-dot offline" id="syncDot"></span>
-    <span id="syncText">加载中...</span>
+  <div class="header-topline">
+    <div>
+      <h1>🌸 约妆管理</h1>
+      <p>订单与收入，一目了然</p>
+    </div>
+    <div class="sync-bar" id="syncBar">
+      <span class="sync-dot offline" id="syncDot"></span>
+      <span id="syncText">加载中...</span>
+    </div>
   </div>
   <div class="view-toggle">
     <button class="active" id="viewOrders" onclick="switchView('orders')">📋 订单</button>
@@ -556,29 +624,32 @@ body {
   <div class="stat-card"><div class="num" id="stat-completed">-</div><div class="label">已完成</div></div>
 </div>
 
-<div class="tabs" id="tabs">
-  <div class="tab active" data-filter="all">全部</div>
-  <div class="tab" data-filter="pending">待确认</div>
-  <div class="tab" data-filter="completed">已完成</div>
-</div>
+<div class="controls">
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-filter="all">全部</div>
+    <div class="tab" data-filter="pending">待确认</div>
+    <div class="tab" data-filter="completed">已完成</div>
+  </div>
 
-<div class="date-filter">
-  <span class="date-filter-label">📅</span>
-  <input type="date" id="dateFilterInput">
-  <button class="date-btn" id="dateTodayBtn">今天</button>
-  <button class="date-btn date-clear" id="dateClearBtn">清除</button>
+  <div class="date-filter">
+    <span class="date-filter-label">📅 日期</span>
+    <input type="date" id="dateFilterInput">
+    <button class="date-btn" id="dateTodayBtn">今天</button>
+    <button class="date-btn date-clear" id="dateClearBtn">清除</button>
+  </div>
 </div>
 
 <div class="order-list" id="orderList">
   <div class="loading-skeleton"><span class="material-icons" style="font-size:32px;display:block;margin-bottom:8px;">cloud_sync</span>正在同步数据...</div>
 </div>
 
-<button class="fab" id="addBtn"><span class="material-icons">add</span></button>
+<button class="fab" id="addBtn" aria-label="新增订单">＋</button>
 
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <h2 id="modalTitle">新增订单</h2>
-    <div class="form-group">
+    <div class="form-grid">
+    <div class="form-group full">
       <label>客人姓名 *</label>
       <input type="text" id="inpName" placeholder="输入客人称呼">
     </div>
@@ -593,11 +664,12 @@ body {
     <div class="form-group">
       <label>约妆日期 *</label>
       <input type="date" id="inpDate">
+    </div>
     <div class="form-group">
       <label>时间</label>
       <input type="time" id="inpTime">
     </div>
-    <div class="form-group">
+    <div class="form-group full">
       <label>服务项目</label>
       <input type="text" id="inpService" placeholder="输入服务项目，如日常妆、新娘妆...">
     </div>
@@ -612,9 +684,10 @@ body {
         <option value="completed">已完成</option>
       </select>
     </div>
-    <div class="form-group">
+    <div class="form-group full">
       <label>备注</label>
       <textarea id="inpNotes" placeholder="化妆要求、地址、注意事项等"></textarea>
+    </div>
     </div>
     <div class="btn-row">
       <button class="btn-cancel" id="cancelBtn">取消</button>
