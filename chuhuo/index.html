@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#176B87">
+  <title>出货账本</title>
+  <style>
+    :root{--ink:#17313b;--muted:#71848b;--line:#dce7e8;--brand:#176b87;--brand2:#0f5168;--mint:#eaf6f4;--paper:#fff;--bg:#f4f7f6;--danger:#b74646;--shadow:0 8px 28px rgba(34,73,82,.09)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.45}
+    button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:760px;margin:auto;min-height:100vh;padding-bottom:104px}
+    header{padding:22px 18px 18px;background:linear-gradient(145deg,#0f5269,#1e8197);color:white;border-radius:0 0 28px 28px;box-shadow:0 12px 30px rgba(23,107,135,.18)}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px}.title{font-size:25px;font-weight:800;letter-spacing:.04em}.subtitle{font-size:12px;opacity:.8;margin-top:3px}
+    .ghost{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:white;border-radius:12px;padding:8px 11px}.tabs{display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.13);padding:4px;border-radius:14px;margin-top:18px}.tab{border:0;background:transparent;color:#d9eef2;border-radius:10px;padding:10px;font-weight:700}.tab.active{background:white;color:var(--brand2)}
+    main{padding:16px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:-2px}.stat{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:13px 10px;box-shadow:var(--shadow)}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;margin-top:5px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat.due strong{color:#c06a22}.stat.paid strong{color:#17805e}
+    .toolbar{display:flex;gap:9px;margin:16px 0 12px}.toolbar select,.toolbar input{width:100%;border:1px solid var(--line);background:white;border-radius:12px;padding:10px 11px;color:var(--ink)}
+    .list{display:grid;gap:11px}.card{background:white;border:1px solid var(--line);border-radius:17px;padding:15px;box-shadow:0 5px 18px rgba(34,73,82,.05)}.card-head,.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.customer{font-size:17px;font-weight:800}.date{font-size:12px;color:var(--muted)}.product{margin-top:5px;color:#48636b}.money{margin-top:13px;padding-top:12px;border-top:1px dashed var(--line);display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.money small{display:block;color:var(--muted)}.money b{font-size:15px}.money .remain b{color:#c06a22}.badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#fff2e7;color:#a85c1b}.badge.ok{background:#e7f7ef;color:#147554}.actions{display:flex;gap:7px;margin-top:13px}.mini{border:1px solid var(--line);background:#f9fbfb;color:var(--brand2);border-radius:10px;padding:7px 10px}.mini.primary{background:var(--brand);color:white;border-color:var(--brand)}.mini.danger{margin-left:auto;color:var(--danger)}
+    .empty{text-align:center;color:var(--muted);background:white;border:1px dashed #cbdada;border-radius:18px;padding:48px 15px}.fab{position:fixed;right:max(18px,calc((100vw - 740px)/2));bottom:calc(22px + env(safe-area-inset-bottom));border:0;background:var(--brand);color:white;border-radius:18px;padding:15px 19px;font-weight:800;font-size:16px;box-shadow:0 12px 28px rgba(23,107,135,.32)}
+    dialog{width:min(94vw,560px);max-height:88vh;border:0;border-radius:22px;padding:0;box-shadow:0 25px 70px rgba(15,51,62,.3)}dialog::backdrop{background:rgba(11,36,43,.5)}.modal{padding:19px}.modal h2{margin:0 0 15px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:13px;color:var(--muted)}.field input,.field textarea{border:1px solid var(--line);border-radius:11px;padding:11px;background:#fbfdfd;width:100%}.field textarea{resize:vertical;min-height:70px}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.btn{border:1px solid var(--line);background:white;border-radius:11px;padding:10px 16px}.btn.primary{background:var(--brand);border-color:var(--brand);color:white;font-weight:700}.pay-history{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.pay-line{display:flex;justify-content:space-between;padding:7px 0;color:#526970;font-size:13px}.backup-menu{position:absolute;right:18px;top:64px;background:white;color:var(--ink);border-radius:13px;padding:6px;box-shadow:var(--shadow);display:none;z-index:5}.backup-menu.show{display:grid}.backup-menu button{border:0;background:white;text-align:left;padding:10px 13px;border-radius:9px}.backup-menu button:hover{background:var(--mint)}
+    @media(max-width:480px){.money{font-size:13px}.stat strong{font-size:16px}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.actions{flex-wrap:wrap}.mini.danger{margin-left:0}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top"><div><div class="title">📦 出货账本</div><div class="subtitle">数据保存在当前浏览器 · 建议定期备份</div></div><button class="ghost" id="backupBtn">备份 ▾</button></div>
+    <div class="backup-menu" id="backupMenu"><button id="exportBtn">导出数据</button><button id="importBtn">导入数据</button><input id="importFile" type="file" accept="application/json" hidden></div>
+    <div class="tabs"><button class="tab active" data-view="shipments">出货记录</button><button class="tab" data-view="payments">收款明细</button></div>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="stat"><span>总货款</span><strong id="totalAmount">¥0</strong></div>
+      <div class="stat paid"><span>已收款</span><strong id="paidAmount">¥0</strong></div>
+      <div class="stat due"><span>待收款</span><strong id="dueAmount">¥0</strong></div>
+    </section>
+    <div class="toolbar"><select id="statusFilter"><option value="all">全部状态</option><option value="due">待收款</option><option value="paid">已收清</option></select><input id="monthFilter" type="month" aria-label="按月份筛选"></div>
+    <section class="list" id="list"></section>
+  </main>
+  <button class="fab" id="addBtn">＋ 记一笔出货</button>
+</div>
+
+<dialog id="shipmentDialog"><form class="modal" id="shipmentForm"><h2 id="shipmentTitle">新增出货</h2><input type="hidden" id="recordId"><div class="form">
+  <div class="field"><label>出货日期</label><input type="date" id="shipDate" required></div>
+  <div class="field"><label>客户名称</label><input id="customer" placeholder="例如：张老板" required></div>
+  <div class="field"><label>货品名称</label><input id="product" placeholder="例如：纸箱" required></div>
+  <div class="field"><label>数量（件）</label><input type="number" id="quantity" min="0" step="1" required></div>
+  <div class="field"><label>单价（元/件）</label><input type="number" id="unitPrice" min="0" step="0.01" required></div>
+  <div class="field full"><label>备注</label><textarea id="note" placeholder="车牌、规格等（选填）"></textarea></div>
+</div><div class="modal-actions"><button class="btn" type="button" data-close="shipmentDialog">取消</button><button class="btn primary" type="submit">保存</button></div></form></dialog>
+
+<dialog id="paymentDialog"><form class="modal" id="paymentForm"><h2>登记收款</h2><input type="hidden" id="paymentRecordId"><div class="form">
+  <div class="field"><label>收款日期</label><input type="date" id="payDate" required></div>
+  <div class="field"><label>本次收款（元）</label><input type="number" id="payAmount" min="0.01" step="0.01" required></div>
+  <div class="field full"><label>备注</label><input id="payNote" placeholder="现金、微信、转账等（选填）"></div>
+</div><div class="pay-history" id="payHistory"></div><div class="modal-actions"><button class="btn" type="button" data-close="paymentDialog">取消</button><button class="btn primary" type="submit">确认收款</button></div></form></dialog>
+
+<script>
+(() => {
+  const KEY='chuhuo_zhangben_v1';
+  let records=load(), view='shipments';
+  const $=id=>document.getElementById(id), money=n=>'¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const today=()=>new Date().toISOString().slice(0,10), uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+  function save(){localStorage.setItem(KEY,JSON.stringify(records));render()}
+  function paid(r){return (r.payments||[]).reduce((s,p)=>s+Number(p.amount),0)}
+  function total(r){return Number(r.quantity)*Number(r.unitPrice)}
+  function filtered(){return records.filter(r=>{const remain=total(r)-paid(r),sf=$('statusFilter').value,mf=$('monthFilter').value;return (sf==='all'||(sf==='due'&&remain>.005)||(sf==='paid'&&remain<=.005))&&(!mf||r.date.startsWith(mf))}).sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt)}
+  function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function render(){
+    const all=filtered(),sum=all.reduce((a,r)=>(a.total+=total(r),a.paid+=paid(r),a),{total:0,paid:0});
+    $('totalAmount').textContent=money(sum.total);$('paidAmount').textContent=money(sum.paid);$('dueAmount').textContent=money(Math.max(0,sum.total-sum.paid));
+    $('addBtn').style.display=view==='shipments'?'block':'none';
+    if(view==='payments'){
+      const ps=all.flatMap(r=>(r.payments||[]).map(p=>({...p,customer:r.customer,product:r.product}))).sort((a,b)=>b.date.localeCompare(a.date));
+      $('list').innerHTML=ps.length?ps.map(p=>`<article class="card"><div class="card-head"><div><div class="customer">${esc(p.customer)}</div><div class="product">${esc(p.product)} · ${esc(p.note||'收款')}</div></div><div style="text-align:right"><div class="customer" style="color:#17805e">${money(p.amount)}</div><div class="date">${esc(p.date)}</div></div></div></article>`).join(''):'<div class="empty">还没有收款记录</div>';return;
+    }
+    $('list').innerHTML=all.length?all.map(r=>{const t=total(r),p=paid(r),rem=Math.max(0,t-p),ok=rem<=.005;return `<article class="card"><div class="card-head"><div><div class="customer">${esc(r.customer)}</div><div class="date">${esc(r.date)}</div></div><span class="badge ${ok?'ok':''}">${ok?'已收清':'待收款'}</span></div><div class="product">${esc(r.product)} · ${esc(r.quantity)} 件 × ${money(r.unitPrice)}${r.note?' · '+esc(r.note):''}</div><div class="money"><div><small>货款</small><b>${money(t)}</b></div><div><small>已收</small><b>${money(p)}</b></div><div class="remain"><small>未收</small><b>${money(rem)}</b></div></div><div class="actions"><button class="mini primary" data-pay="${r.id}" ${ok?'disabled style="opacity:.45"':''}>登记收款</button><button class="mini" data-edit="${r.id}">编辑</button><button class="mini danger" data-delete="${r.id}">删除</button></div></article>`}).join(''):'<div class="empty">还没有符合条件的出货记录<br>点击右下角开始记账</div>';
+  }
+  function openShipment(r){$('shipmentTitle').textContent=r?'编辑出货':'新增出货';$('recordId').value=r?.id||'';$('shipDate').value=r?.date||today();$('customer').value=r?.customer||'';$('product').value=r?.product||'';$('quantity').value=r?.quantity||'';$('unitPrice').value=r?.unitPrice||'';$('note').value=r?.note||'';$('shipmentDialog').showModal()}
+  function openPayment(r){$('paymentRecordId').value=r.id;$('payDate').value=today();$('payAmount').value=Math.max(0,total(r)-paid(r)).toFixed(2);$('payNote').value='';const ps=r.payments||[];$('payHistory').innerHTML=ps.length?'<b>以前收款</b>'+ps.map(p=>`<div class="pay-line"><span>${esc(p.date)} ${esc(p.note||'')}</span><span>${money(p.amount)}</span></div>`).join(''):'';$('paymentDialog').showModal()}
+  $('shipmentForm').addEventListener('submit',e=>{e.preventDefault();const id=$('recordId').value,old=records.find(r=>r.id===id);const item={id:id||uid(),date:$('shipDate').value,customer:$('customer').value.trim(),product:$('product').value.trim(),quantity:Number($('quantity').value),unitPrice:Number($('unitPrice').value),note:$('note').value.trim(),payments:old?.payments||[],createdAt:old?.createdAt||Date.now()};if(old)records=records.map(r=>r.id===id?item:r);else records.push(item);$('shipmentDialog').close();save()});
+  $('paymentForm').addEventListener('submit',e=>{e.preventDefault();const r=records.find(x=>x.id===$('paymentRecordId').value);if(!r)return;const amount=Number($('payAmount').value),remain=total(r)-paid(r);if(amount>remain+.005){alert('本次收款不能超过未收金额 '+money(remain));return}(r.payments||(r.payments=[])).push({id:uid(),date:$('payDate').value,amount,note:$('payNote').value.trim()});$('paymentDialog').close();save()});
+  $('list').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.pay||b.dataset.edit||b.dataset.delete,r=records.find(x=>x.id===id);if(b.dataset.pay)openPayment(r);if(b.dataset.edit)openShipment(r);if(b.dataset.delete&&confirm('确定删除这笔出货记录吗？')){records=records.filter(x=>x.id!==id);save()}});
+  document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());$('addBtn').onclick=()=>openShipment();$('statusFilter').onchange=render;$('monthFilter').onchange=render;
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');view=t.dataset.view;render()});
+  $('backupBtn').onclick=()=> $('backupMenu').classList.toggle('show');
+  $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),records},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='出货账本备份-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);$('backupMenu').classList.remove('show')};
+  $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{try{const data=JSON.parse(await e.target.files[0].text()),incoming=Array.isArray(data)?data:data.records;if(!Array.isArray(incoming))throw 0;if(confirm('导入会替换当前浏览器中的全部账本数据，确定吗？')){records=incoming;save()}}catch(err){alert('备份文件格式不正确')}e.target.value=''};
+  document.addEventListener('click',e=>{if(!e.target.closest('#backupBtn')&&!e.target.closest('#backupMenu'))$('backupMenu').classList.remove('show')});render();
+})();
+</script>
+</body>
+</html>
