@@ -263,8 +263,10 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   vertical-align: middle;
   margin-right: 3px;
 }
-.order-card .appointment-datetime { white-space: nowrap; }
-.order-card .appointment-time { margin-left: 6px; font-weight: 600; color: var(--pink-dark); }
+.order-card .appointment-datetime { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding-right: 8px; }
+.order-card .appointment-datetime > span { white-space: nowrap; }
+.order-card .customer-name { overflow-wrap: anywhere; }
+.order-card .appointment-time { font-weight: 600; color: var(--pink-dark); }
 .order-card .notes {
   margin-top: 8px;
   padding: 8px 10px;
@@ -815,7 +817,7 @@ function render() {
       return `<div class="order-card">
           <div class="row">
             <div class="client-info">
-              <div class="name">${o.name ? esc(o.name) : "📝 未命名客人"}</div>
+              <div class="name appointment-datetime"><span>${esc(day)}</span> <span class="appointment-time">${esc(time)}</span>${weekday ? '<span>周' + weekday + '</span>' : ""}</div>
               <div class="contact">
                 ${o.phone ? `<span><span class="material-icons mat-icon">phone</span>${esc(o.phone)}</span>` : ''}
                 ${o.wechat ? `<span><span class="material-icons mat-icon">chat</span>${esc(o.wechat)}</span>` : ''}
@@ -824,7 +826,7 @@ function render() {
             <span class="status-badge ${s.cls}">${s.label}</span>
           </div>
           <div class="meta">
-            <span class="appointment-datetime"><span class="material-icons mat-icon">event</span>${esc(day)} <span class="appointment-time">${esc(time)}</span>${weekday ? " 周" + weekday : ""}</span>
+            <span class="customer-name">${o.name ? esc(o.name) : "📝 未命名客人"}</span>
             <span><span class="material-icons mat-icon">spa</span>${esc(svc)}</span>
             ${o.amount ? `<span><span class="material-icons mat-icon">payments</span>¥${esc(o.amount)}</span>` : ''}
           </div>
